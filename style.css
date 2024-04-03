@@ -47,3 +47,13 @@
     transition: 0.3s ease-in-out;
 }
 
+#resultado{
+    background-color: rgb(255, 255, 255);
+    width: 217px;
+    height: 50px;
+    margin: 5px;
+    font-size: 25px;
+    color: black;
+    text-align: right;
+    padding: 10px;
+}
