@@ -39,6 +39,7 @@
     height: 50px;
     transition: 0.3s ease-in-out;
     transform: scale(1.00);
+    padding: 0 1px
 }
 
 .botao:hover{
@@ -51,6 +52,18 @@
     background-color: rgb(255, 255, 255);
     width: 217px;
     height: 50px;
+    margin: 5px;
+    font-size: 25px;
+    color: black;
+    text-align: right;
+    padding: 10px;
+}
+
+
+#visor {
+    background-color: rgb(255, 255, 255);
+    width: 217px;
+    height: 30px;
     margin: 5px;
     font-size: 25px;
     color: black;
