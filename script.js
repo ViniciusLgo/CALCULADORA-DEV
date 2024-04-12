@@ -35,41 +35,90 @@ class Calculator {
   context = null
 
   visor = document.querySelector("#visor");
-
   buttons = document.querySelectorAll(".botao");
-
-
   eventBus = eventBus(["clickDot", "clickNumber", "clickOperator", "clickEqual", "clickClear", "clickOnOff"])
+  currentOperator = null;
 
   numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-  currentOperator = null;
 
   operatorsMap = {
     "+": this.some.bind(this),
     "-": this.subtract.bind(this),
     "*": this.multiply.bind(this),
     "/": this.divide.bind(this),
+    "%":  this.percentage.bind(this),
   };
 
   calculatorFunctionsMap = {
-    C: this.resetOperations.bind(this),
+      C: this.resetOperations.bind(this),
      "ON/OFF": this.toggleOnOff.bind(this),
-     "CLM":() => {},
-     "S/F":() => {},
-     "RM":() => {},
-     "M+":() => {},
+     "CLM":this.clearContext.bind(this),
+     "RM":this.printMemory.bind(this),
+     "M+": this.addVisorToMemory.bind(this),
+     "M-": this.subVisorToMemory.bind(this),
+     "+/-": this.toggleSignal.bind(this),
+     "√":this.squareRoot.bind(this),
   }
 
   constructor() {
-    this.setupListeners();
+   this.setupListeners();
   }
 
+  squareRoot() {
+  const visorValue = this.getVisorValue();
+
+    if(visorValue < 0) {
+      alert("Valor inválido")
+      return;
+    }
+     this.clearVisor();
+     this.printVisor(Math.sqrt(visorValue))
+  }
+
+  percentage(value1, porcentagem) {
+    return (value1 * porcentagem) / 100;
+  }
+
+  toggleSignal() {
+    const visorValue = this.getVisorValue();
+    this.clearVisor();
+    this.printVisor(visorValue * -1);
+  }
+
+  subVisorToMemory() {
+    const visorValue = this.getVisorValue()
+
+    if(isNaN(visorValue)) {
+      alert("Valor inválido")
+      return
+    }
+    this.context -= visorValue;
+  }
+
+  addVisorToMemory() {
+
+    const visorValue = this.getVisorValue()
+
+    if(isNaN(visorValue)) {
+      alert("Valor inválido")
+      return
+    }
+    this.context += visorValue;
+  }
 
   toggleOnOff() {
     this.context = null;
     this.currentOperator = null
     this.clearVisor()
+  }
+
+  printMemory() {
+    this.clearVisor();
+    this.printVisor(this.context);
+  }
+
+  clearContext()  {
+    this.context = null
   }
 
   handleOperator(operator) {
@@ -78,28 +127,22 @@ class Calculator {
     }
 
     this.currentOperator = operator;
-
     this.clearVisor();
   }
 
   handleCalculatorFunction(operator) {
-
     const calculatorFunctionHandler = this.calculatorFunctionsMap[operator];
-
     calculatorFunctionHandler();
   }
 
   resetOperations() {
-
-    if(!this.currentOperator) return 
-
+    if(!this.currentOperator) return
     this.clearVisor();
     this.printVisor(this.context);
   }
 
   addDot() {
     const currentVisorValue = this.visor.innerHTML;
-
     if(currentVisorValue.includes('.')) {
       return;
     }
@@ -123,7 +166,7 @@ class Calculator {
     const isDot = value === ".";
     const isNumeric = this.numbers.includes(Number(value))
     const isOperator = Object.keys(this.operatorsMap).includes(value);
-    const  isFunctionCalculator = Object.keys(this.calculatorFunctionsMap).includes(value);
+    const isFunctionCalculator = Object.keys(this.calculatorFunctionsMap).includes(value);
     const isEqual = value === "=";
 
    if(isNumeric) {
