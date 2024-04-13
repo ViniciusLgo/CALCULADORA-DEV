@@ -63,10 +63,24 @@ class Calculator {
      "M-": this.subVisorToMemory.bind(this),
      "+/-": this.toggleSignal.bind(this),
      "√":this.squareRoot.bind(this),
+    "1/x": this.inverseOperation.bind(this)
   }
 
   constructor() {
    this.setupListeners();
+  }
+
+  inverseOperation() {
+    const visorValue = this.getVisorValue();
+
+    if(visorValue === 0) {
+      alert("Não é possível dividir por zero")
+      return;
+    }
+
+
+    this.clearVisor();
+    this.printVisor(1 / visorValue)
   }
 
   squareRoot() {
@@ -117,7 +131,7 @@ class Calculator {
 
   printMemory() {
     this.clearVisor();
-    this.printVisor(this.context);
+    this.printVisor(this.context ? this.context.toFixed(1) : "");
   }
 
   clearContext()  {
@@ -167,7 +181,7 @@ class Calculator {
 
   updateContext(value) {
     this.context = value;
-    this.memory_indicator.innerHTML = value ? `Valor na memoria: ${value}` : "Sem valor"
+    this.memory_indicator.innerHTML = value ? `Valor na memoria: ${value.toFixed(1)}` : "Sem valor"
   }
 
   handleClickCalculatorButton(value) {
@@ -222,15 +236,15 @@ class Calculator {
     this.eventHistory.push(historyItem)
 
     this.eventHistory.forEach((history) => {
-        this.calculatorHistoryVisor.innerHTML += `<p>${history.context} ${history.currentOperator} ${history.visorValue} = ${history.results} </p> <br>`
+        this.calculatorHistoryVisor.innerHTML += `<p>${history.context.toFixed(1)} 
+        ${history.currentOperator} ${history.visorValue} =
+        ${history.results.toFixed(1)} </p> <br>`
     })
   }
 
   clearOperatorVisor() {
     this.operatorVisor.innerHTML = "";
   }
-
-
 
   setupListeners() {
     this.buttons.forEach((button) => {
@@ -280,18 +294,18 @@ class Calculator {
 
    const results = operatorHandler(this.context, visorValue);
 
-   const parsedResults = Math.trunc(results);
+
 
    this.eventBus.dispatch("operator_made", {
      context: this.context,
      currentOperator: this.currentOperator,
      visorValue: visorValue,
-     results: parsedResults
+     results,
    })
 
     this.clearVisor();
-    this.updateContext(parsedResults);
-    this.printVisor(parsedResults)
+    this.updateContext(results);
+    this.printVisor(results.toFixed(1))
 
     this.currentOperator = null;
 
