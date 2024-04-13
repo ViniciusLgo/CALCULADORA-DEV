@@ -38,8 +38,13 @@ class Calculator {
   buttons = document.querySelectorAll(".botao");
   eventBus = eventBus(["clickDot", "clickNumber", "clickOperator", "clickEqual", "clickClear", "clickOnOff"])
   currentOperator = null;
+  eventHistory= []
+  operatorVisor = document.querySelector("#current_operator_indicator")
+  calculatorHistoryVisor = document.querySelector("#history")
+  memory_indicator = document.querySelector("#memory_value")
 
   numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  numberLimit = 10
 
   operatorsMap = {
     "+": this.some.bind(this),
@@ -75,9 +80,7 @@ class Calculator {
      this.printVisor(Math.sqrt(visorValue))
   }
 
-  percentage(value1, porcentagem) {
-    return (value1 * porcentagem) / 100;
-  }
+
 
   toggleSignal() {
     const visorValue = this.getVisorValue();
@@ -107,7 +110,7 @@ class Calculator {
   }
 
   toggleOnOff() {
-    this.context = null;
+    this.updateContext(null)
     this.currentOperator = null
     this.clearVisor()
   }
@@ -118,12 +121,12 @@ class Calculator {
   }
 
   clearContext()  {
-    this.context = null
+    this.updateContext(null)
   }
 
   handleOperator(operator) {
     if(!this.context) {
-        this.context = this.getVisorValue();
+      this.updateContext(this.getVisorValue());
     }
 
     this.currentOperator = operator;
@@ -162,6 +165,11 @@ class Calculator {
     return Number(this.visor.innerHTML);
   }
 
+  updateContext(value) {
+    this.context = value;
+    this.memory_indicator.innerHTML = value ? `Valor na memoria: ${value}` : "Sem valor"
+  }
+
   handleClickCalculatorButton(value) {
     const isDot = value === ".";
     const isNumeric = this.numbers.includes(Number(value))
@@ -170,6 +178,10 @@ class Calculator {
     const isEqual = value === "=";
 
    if(isNumeric) {
+    const currentVisorValue = this.visor.innerHTML;
+
+    if(currentVisorValue.length >= this.numberLimit) return;
+
      this.eventBus.dispatch("clickNumber", value)
    }
    if(isDot) {
@@ -186,6 +198,40 @@ class Calculator {
     }
   }
 
+  toggleIndicateOperator(value) {
+
+    const operator = value ?? this.currentOperator;
+
+    const currentButton = Array.from(this.buttons).find(button => button.innerHTML === operator)
+
+    const hasOperatorActive = Array.from(this.buttons).filter(button => button.classList.contains("active"))
+
+    if(hasOperatorActive.length) {
+        hasOperatorActive.forEach(button => button.classList.remove("active"))
+    }
+
+    if(!currentButton) return;
+    currentButton.classList.toggle("active")
+  }
+
+  showCurrentOperatorInVisor(operator) {
+    this.operatorVisor.innerHTML = operator;
+  }
+
+  showHistory(historyItem) {
+    this.eventHistory.push(historyItem)
+
+    this.eventHistory.forEach((history) => {
+        this.calculatorHistoryVisor.innerHTML += `<p>${history.context} ${history.currentOperator} ${history.visorValue} = ${history.results} </p> <br>`
+    })
+  }
+
+  clearOperatorVisor() {
+    this.operatorVisor.innerHTML = "";
+  }
+
+
+
   setupListeners() {
     this.buttons.forEach((button) => {
       button.addEventListener("click", () => this.handleClickCalculatorButton(button.innerHTML));
@@ -195,10 +241,15 @@ class Calculator {
     this.eventBus.registerListeners("clickOperator", this.handleOperator.bind(this));
     this.eventBus.registerListeners("clickEqual", this.equal.bind(this));
     this.eventBus.registerListeners("clickCalculatorFunction", this.handleCalculatorFunction.bind(this))
+    this.eventBus.registerListeners("clickOperator",this.toggleIndicateOperator.bind(this))
+    this.eventBus.registerListeners("clickOperator", this.showCurrentOperatorInVisor.bind(this))
+    this.eventBus.registerListeners("operator_made", this.showHistory.bind(this))
+    this.eventBus.registerListeners("clickEqual", this.toggleIndicateOperator.bind(this))
+    this.eventBus.registerListeners("operator_made", this.showCurrentOperatorInVisor.bind(this))
+    this.eventBus.registerListeners("operator_made", this.clearOperatorVisor.bind(this))
   }
 
   some(vl1, vl2) {
-
     return vl1 + vl2;
   }
 
@@ -216,6 +267,10 @@ class Calculator {
     return vl1 / vl2;
   }
 
+  percentage(value1, porcentagem) {
+    return (value1 * porcentagem) / 100;
+  }
+
   equal() {
     if(!this.context || !this.currentOperator) return;
 
@@ -225,11 +280,18 @@ class Calculator {
 
    const results = operatorHandler(this.context, visorValue);
 
+   const parsedResults = Math.trunc(results);
+
+   this.eventBus.dispatch("operator_made", {
+     context: this.context,
+     currentOperator: this.currentOperator,
+     visorValue: visorValue,
+     results: parsedResults
+   })
+
     this.clearVisor();
-
-    this.context = results;
-
-    this.printVisor(results.toFixed(2))
+    this.updateContext(parsedResults);
+    this.printVisor(parsedResults)
 
     this.currentOperator = null;
 
