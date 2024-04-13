@@ -57,13 +57,13 @@ class Calculator {
   calculatorFunctionsMap = {
       C: this.resetOperations.bind(this),
 
-     "ON/OFF": this.toggleOnOff.bind(this),
-     "CLM":this.clearContext.bind(this),
-     "RM":this.printMemory.bind(this),
-     "M+": this.addVisorToMemory.bind(this),
-     "M-": this.subVisorToMemory.bind(this),
-     "+/-": this.toggleSignal.bind(this),
-     "√":this.squareRoot.bind(this),
+      "ON/OFF": this.toggleOnOff.bind(this),
+      "CLM":this.clearContext.bind(this),
+      "RM":this.printMemory.bind(this),
+      "M+": this.addVisorToMemory.bind(this),
+      "M-": this.subVisorToMemory.bind(this),
+      "+/-": this.toggleSignal.bind(this),
+      "√":this.squareRoot.bind(this),
     "1/x": this.inverseOperation.bind(this)
 
   }
@@ -298,12 +298,12 @@ class Calculator {
 
 
 
-   this.eventBus.dispatch("operator_made", {
-     context: this.context,
-     currentOperator: this.currentOperator,
-     visorValue: visorValue,
-     results,
-   })
+    this.eventBus.dispatch("operator_made", {
+      context: this.context,
+      currentOperator: this.currentOperator,
+      visorValue: visorValue,
+      results,
+    })
 
 
     this.clearVisor();
