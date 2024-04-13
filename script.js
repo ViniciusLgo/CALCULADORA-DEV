@@ -56,6 +56,7 @@ class Calculator {
 
   calculatorFunctionsMap = {
       C: this.resetOperations.bind(this),
+
      "ON/OFF": this.toggleOnOff.bind(this),
      "CLM":this.clearContext.bind(this),
      "RM":this.printMemory.bind(this),
@@ -64,10 +65,11 @@ class Calculator {
      "+/-": this.toggleSignal.bind(this),
      "√":this.squareRoot.bind(this),
     "1/x": this.inverseOperation.bind(this)
+
   }
 
   constructor() {
-   this.setupListeners();
+    this.setupListeners();
   }
 
   inverseOperation() {
@@ -90,8 +92,8 @@ class Calculator {
       alert("Valor inválido")
       return;
     }
-     this.clearVisor();
-     this.printVisor(Math.sqrt(visorValue))
+      this.clearVisor();
+      this.printVisor(Math.sqrt(visorValue))
   }
 
 
@@ -191,16 +193,16 @@ class Calculator {
     const isFunctionCalculator = Object.keys(this.calculatorFunctionsMap).includes(value);
     const isEqual = value === "=";
 
-   if(isNumeric) {
+    if(isNumeric) {
     const currentVisorValue = this.visor.innerHTML;
 
     if(currentVisorValue.length >= this.numberLimit) return;
 
-     this.eventBus.dispatch("clickNumber", value)
-   }
-   if(isDot) {
-     this.eventBus.dispatch("clickDot", value)
-   }
+      this.eventBus.dispatch("clickNumber", value)
+    }
+    if(isDot) {
+      this.eventBus.dispatch("clickDot", value)
+    }
     if(isOperator) {
       this.eventBus.dispatch("clickOperator", value)
     }
@@ -292,7 +294,7 @@ class Calculator {
 
     const operatorHandler = this.operatorsMap[this.currentOperator];
 
-   const results = operatorHandler(this.context, visorValue);
+    const results = operatorHandler(this.context, visorValue);
 
 
 
@@ -302,6 +304,7 @@ class Calculator {
      visorValue: visorValue,
      results,
    })
+
 
     this.clearVisor();
     this.updateContext(results);
