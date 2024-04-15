@@ -99,7 +99,7 @@
     background-color: rgb(255, 255, 255);
     width: 300px;
     min-height: 50px;
-
+    max-height: 400px;
     overflow: auto;
     margin: 5px;
     font-size: 25px;
@@ -124,4 +124,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.active-calculator-indicator {
+    background-color: greenyellow;
+    color: black;
 }
