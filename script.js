@@ -44,14 +44,14 @@ class Calculator {
   memory_indicator = document.querySelector("#memory_value")
 
   numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  numberLimit = 10
+  numberLimit = 9
 
   operatorsMap = {
     "+": this.some.bind(this),
     "-": this.subtract.bind(this),
     "*": this.multiply.bind(this),
     "/": this.divide.bind(this),
-    "%":  this.percentage.bind(this),
+    "%": this.percentage.bind(this),
   };
 
   calculatorFunctionsMap = {
@@ -63,7 +63,7 @@ class Calculator {
      "M-": this.subVisorToMemory.bind(this),
      "+/-": this.toggleSignal.bind(this),
      "√":this.squareRoot.bind(this),
-    "1/x": this.inverseOperation.bind(this)
+     "1/x": this.inverseOperation.bind(this)
   }
 
   constructor() {
@@ -125,13 +125,13 @@ class Calculator {
 
   toggleOnOff() {
     this.updateContext(null)
-    this.currentOperator = null
+    this.updateOperator(null)
     this.clearVisor()
   }
 
   printMemory() {
     this.clearVisor();
-    this.printVisor(this.context ? this.context.toFixed(1) : "");
+    this.printVisor(this.context >= this.numberLimit ? this.context.slice(0, this.numberLimit) : this.context)
   }
 
   clearContext()  {
@@ -143,7 +143,7 @@ class Calculator {
       this.updateContext(this.getVisorValue());
     }
 
-    this.currentOperator = operator;
+    this.updateOperator(operator);
     this.clearVisor();
   }
 
@@ -153,17 +153,17 @@ class Calculator {
   }
 
   resetOperations() {
-    if(!this.currentOperator) return
+    this.updateOperator(null)
     this.clearVisor();
-    this.printVisor(this.context);
   }
 
+
   addDot() {
-    const currentVisorValue = this.visor.innerHTML;
+    const currentVisorValue = String(this.getVisorValue());
+
     if(currentVisorValue.includes('.')) {
       return;
     }
-
     this.printVisor(".");
   }
 
@@ -172,16 +172,36 @@ class Calculator {
   }
 
   printVisor(value) {
-    this.visor.innerHTML += value;
+
+    const visorIsClear = this.visor.innerHTML === "";
+    const exceedMaxNumberLength = String(value).length >= this.numberLimit;
+
+    console.log({exceedMaxNumberLength})
+
+    if(visorIsClear && exceedMaxNumberLength) {
+        this.visor.innerHTML = value.toString().slice(0, this.numberLimit);
+        return;
+    }
+
+    if(!exceedMaxNumberLength) {
+      this.visor.innerHTML += value;
+    }
   }
 
   getVisorValue() {
     return Number(this.visor.innerHTML);
   }
 
+  updateOperator(operator) {
+    this.currentOperator = operator;
+    this.operatorVisor.innerHTML = operator ?? "";
+  }
+
+
+
   updateContext(value) {
     this.context = value;
-    this.memory_indicator.innerHTML = value ? `Valor na memoria: ${value.toFixed(1)}` : "Sem valor"
+    this.memory_indicator.innerHTML = value ? `Memoria: ${this.truncValue(value)}` : ""
   }
 
   handleClickCalculatorButton(value) {
@@ -232,13 +252,17 @@ class Calculator {
     this.operatorVisor.innerHTML = operator;
   }
 
+  truncValue(value) {
+    return String(value).slice(0, this.numberLimit)
+  }
+
   showHistory(historyItem) {
     this.eventHistory.push(historyItem)
 
     this.eventHistory.forEach((history) => {
-        this.calculatorHistoryVisor.innerHTML += `<p>${history.context.toFixed(1)} 
-        ${history.currentOperator} ${history.visorValue} =
-        ${history.results.toFixed(1)} </p> <br>`
+        this.calculatorHistoryVisor.innerHTML += `<p>${this.truncValue(history.context)} 
+        ${history.currentOperator} ${this.truncValue(history.visorValue)} =
+        ${this.truncValue(history.results)} </p> <br>`
     })
   }
 
@@ -295,7 +319,6 @@ class Calculator {
    const results = operatorHandler(this.context, visorValue);
 
 
-
    this.eventBus.dispatch("operator_made", {
      context: this.context,
      currentOperator: this.currentOperator,
@@ -305,9 +328,8 @@ class Calculator {
 
     this.clearVisor();
     this.updateContext(results);
-    this.printVisor(results.toFixed(1))
-
-    this.currentOperator = null;
+    this.printVisor(results)
+    this.updateOperator(null)
 
   }
 }
