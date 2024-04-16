@@ -6,8 +6,6 @@ const eventBus =  () => {
   const dispatch = (event, data = null) => {
     const handlers = eventMap.get(event)
 
-
-
     if(!handlers) return console.error(`Event ${event} not found`)
 
     handlers.forEach(handler => handler(data))
@@ -50,6 +48,7 @@ class Calculator {
     "operator_made",
     "operator_made",
     "operator_made",
+    "exception",
   ])
   currentOperator = null;
   eventHistory= new Map()
@@ -62,6 +61,7 @@ class Calculator {
   needClearVisor = false
   toggleOnOffButton = document.querySelector("#toggleOnOfButton")
   buttonSignal = new AbortController()
+  error = null
 
   numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   numberLimit = 9
@@ -102,7 +102,7 @@ class Calculator {
     const visorValue = this.getVisorValue();
 
     if(visorValue === 0) {
-      alert("Não é possível dividir por zero")
+    this.eventBus.dispatch("exception", "Não é possível dividir por zero")
       return;
     }
     this.clearVisor();
@@ -141,6 +141,16 @@ class Calculator {
     this.updateOperator(null)
     this.eventBus.clearListeners();
     this.buttonSignal.abort("off_calculator")
+    this.error = null;
+  }
+
+  catchException(message) {
+    this.visor.innerHTML = "Erro";
+    const messageAlert = message ?? "Operação inválida"
+    this.error = messageAlert;
+    this.updateOperator(null)
+    this.updateContext(null)
+    alert(messageAlert)
   }
 
   onCalculator() {
@@ -156,6 +166,7 @@ class Calculator {
     this.eventBus.registerListeners("clickEqual", this.toggleIndicateOperator.bind(this))
     this.eventBus.registerListeners("operator_made", this.showCurrentOperatorInVisor.bind(this))
     this.eventBus.registerListeners("operator_made", this.clearOperatorVisor.bind(this))
+    this.eventBus.registerListeners("exception", this.catchException.bind(this))
 
     this.eventBus.registerListeners("operator_made", () => {
       this.needClearVisor = true;
@@ -200,6 +211,7 @@ class Calculator {
   resetOperations() {
     this.updateOperator(null)
     this.clearVisor();
+    this.error = null;
   }
 
 
@@ -250,6 +262,15 @@ class Calculator {
     const isOperator = Object.keys(this.operatorsMap).includes(value);
     const isFunctionCalculator = Object.keys(this.calculatorFunctionsMap).includes(value);
     const isEqual = value === "=";
+
+
+    if(this.error) {
+      if(value === "C") {
+        this.eventBus.dispatch("clickCalculatorFunction", value)
+      }
+        return;
+    }
+
 
     if(this.needClearVisor) {
       this.clearVisor();
@@ -339,7 +360,10 @@ class Calculator {
   }
 
   divide(vl1, vl2) {
-    if(vl2 === 0) return alert("Não é possível dividir por zero");
+    if(vl2 === 0)  {
+        this.eventBus.dispatch("exception", "Não é possível dividir por zero")
+      return
+    }
 
     return vl1 / vl2;
   }
@@ -357,12 +381,16 @@ class Calculator {
 
    const results = operatorHandler(this.context, visorValue);
 
-   this.eventBus.dispatch("operator_made", {
-     context: this.context,
-     currentOperator: this.currentOperator,
-     visorValue: visorValue,
-     results,
-   })
+    if(this.error) {
+      return;
+    }
+
+    this.eventBus.dispatch("operator_made", {
+      context: this.context,
+      currentOperator: this.currentOperator,
+      visorValue: visorValue,
+      results,
+    })
     this.clearVisor();
     this.updateContext(results);
     this.printVisor(results)
