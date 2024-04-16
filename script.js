@@ -61,6 +61,7 @@ class Calculator {
   isFirstOperation = true
   needClearVisor = false
   toggleOnOffButton = document.querySelector("#toggleOnOfButton")
+  buttonSignal = new AbortController()
 
   numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   numberLimit = 9
@@ -139,9 +140,11 @@ class Calculator {
     this.clearVisor();
     this.updateOperator(null)
     this.eventBus.clearListeners();
+    this.buttonSignal.abort("off_calculator")
   }
 
   onCalculator() {
+    this.buttonSignal = new AbortController();
     this.eventBus.registerListeners("clickDot", this.addDot.bind(this));
     this.eventBus.registerListeners("clickNumber", this.printVisor.bind(this));
     this.eventBus.registerListeners("clickOperator", this.handleOperator.bind(this));
@@ -154,10 +157,6 @@ class Calculator {
     this.eventBus.registerListeners("operator_made", this.showCurrentOperatorInVisor.bind(this))
     this.eventBus.registerListeners("operator_made", this.clearOperatorVisor.bind(this))
 
-    this.buttons.forEach((button) => {
-      button.addEventListener("click", () => this.handleClickCalculatorButton(button.innerHTML), {capture: true});
-    });
-
     this.eventBus.registerListeners("operator_made", () => {
       this.needClearVisor = true;
     })
@@ -165,7 +164,11 @@ class Calculator {
     this.onOfButton.classList.add("active-calculator-indicator")
     this.printVisor(0)
     this.isFirstOperation = true;
-
+    this.buttons.forEach((button) => {
+      button.addEventListener("click",
+          () => this.handleClickCalculatorButton(button.innerHTML),
+          {signal: this.buttonSignal.signal});
+    });
   }
 
   printMemory() {
