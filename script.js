@@ -6,7 +6,7 @@ const eventBus =  () => {
   const dispatch = (event, data = null) => {
     const handlers = eventMap.get(event)
 
-    console.log(handlers)
+
 
     if(!handlers) return console.error(`Event ${event} not found`)
 
@@ -15,13 +15,7 @@ const eventBus =  () => {
 
   const  registerListeners = (event = "", handler = () => {}) => {
     const handlers = eventMap.get(event) || []
-
-    console.log(handlers)
-
-    console.log(event, handlers)
-
     handlers.push(handler);
-
     eventMap.set(event, handlers)
   }
 
@@ -64,7 +58,7 @@ class Calculator {
   operatorVisor = document.querySelector("#current_operator_indicator")
   calculatorHistoryVisor = document.querySelector("#history")
   memory_indicator = document.querySelector("#memory_value")
-  isOn = true;
+  isOn = false;
   onOfButton = document.querySelector(".onOf")
   isFirstOperation = true
   needClearVisor = false
@@ -114,6 +108,8 @@ class Calculator {
     this.eventBus.registerListeners("operator_made", () => {
       this.needClearVisor = true;
     })
+
+    this.eventBus.dispatch("on_calculator")
   }
 
   toggleOnOff() {
@@ -132,12 +128,7 @@ class Calculator {
   }
 
   squareRoot() {
-  const visorValue = this.getVisorValue();
-
-    if(visorValue < 0) {
-      alert("Valor inválido")
-      return;
-    }
+    const visorValue = this.getVisorValue();
      this.clearVisor();
      this.printVisor(Math.sqrt(visorValue))
   }
@@ -150,21 +141,14 @@ class Calculator {
 
   subVisorToMemory() {
     const visorValue = this.getVisorValue()
-
-    if(isNaN(visorValue)) {
-      alert("Valor inválido")
-      return
-    }
-    this.context -= visorValue;
+    this.updateContext(this.context - visorValue);
+    this.clearVisor();
   }
 
   addVisorToMemory() {
     const visorValue = this.getVisorValue()
-    if(isNaN(visorValue)) {
-      alert("Valor inválido")
-      return
-    }
-    this.context += visorValue;
+    this.updateContext(this.context + visorValue)
+    this.clearVisor();
   }
 
   offCalculator() {
@@ -181,11 +165,14 @@ class Calculator {
     this.onOfButton.classList.add("active-calculator-indicator")
     this.printVisor(0)
     this.isFirstOperation = true;
-    this.setupListeners();
+
   }
 
   printMemory() {
     this.clearVisor();
+    if(!this.context) {
+        return;
+    }
     this.printVisor(this.context >= this.numberLimit ? this.context.slice(0, this.numberLimit) : this.context)
   }
 
