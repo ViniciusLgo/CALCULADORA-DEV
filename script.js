@@ -50,8 +50,6 @@ class Calculator {
     "operator_made",
     "operator_made",
     "operator_made",
-    "off_calculator",
-    "on_calculator"
   ])
   currentOperator = null;
   eventHistory= new Map()
@@ -62,6 +60,7 @@ class Calculator {
   onOfButton = document.querySelector(".onOf")
   isFirstOperation = true
   needClearVisor = false
+  toggleOnOffButton = document.querySelector("#toggleOnOfButton")
 
   numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   numberLimit = 9
@@ -76,7 +75,6 @@ class Calculator {
 
   calculatorFunctionsMap = {
       C: this.resetOperations.bind(this),
-     "ON/OFF": this.toggleOnOff.bind(this),
      "CLM": this.clearContext.bind(this),
      "RM":this.printMemory.bind(this),
      "M+": this.addVisorToMemory.bind(this),
@@ -87,33 +85,16 @@ class Calculator {
   }
 
   constructor() {
-    this.eventBus.registerListeners("clickDot", this.addDot.bind(this));
-    this.eventBus.registerListeners("clickNumber", this.printVisor.bind(this));
-    this.eventBus.registerListeners("clickOperator", this.handleOperator.bind(this));
-    this.eventBus.registerListeners("clickEqual", this.equal.bind(this));
-    this.eventBus.registerListeners("clickCalculatorFunction", this.handleCalculatorFunction.bind(this))
-    this.eventBus.registerListeners("clickOperator",this.toggleIndicateOperator.bind(this))
-    this.eventBus.registerListeners("clickOperator", this.showCurrentOperatorInVisor.bind(this))
-    this.eventBus.registerListeners("operator_made", this.showHistory.bind(this))
-    this.eventBus.registerListeners("clickEqual", this.toggleIndicateOperator.bind(this))
-    this.eventBus.registerListeners("operator_made", this.showCurrentOperatorInVisor.bind(this))
-    this.eventBus.registerListeners("operator_made", this.clearOperatorVisor.bind(this))
-    this.eventBus.registerListeners("off_calculator", this.offCalculator.bind(this))
-    this.eventBus.registerListeners("on_calculator", this.onCalculator.bind(this))
-
-    this.buttons.forEach((button) => {
-      button.addEventListener("click", () => this.handleClickCalculatorButton(button.innerHTML));
-    });
-
-    this.eventBus.registerListeners("operator_made", () => {
-      this.needClearVisor = true;
+    this.toggleOnOff();
+    this.toggleOnOffButton.addEventListener("click", () => {
+      console.log("click")
+      this.toggleOnOff();
+      console.log(this.isOn)
     })
-
-    this.eventBus.dispatch("on_calculator")
   }
 
   toggleOnOff() {
-    this.isOn ? this.eventBus.dispatch("off_calculator") : this.eventBus.dispatch("on_calculator")
+    this.isOn ?  this.offCalculator(): this.onCalculator();
   }
 
   inverseOperation() {
@@ -157,10 +138,29 @@ class Calculator {
     this.updateContext(null)
     this.clearVisor();
     this.updateOperator(null)
-    this.disabledCalculatorEvents();
+    this.eventBus.clearListeners();
   }
 
   onCalculator() {
+    this.eventBus.registerListeners("clickDot", this.addDot.bind(this));
+    this.eventBus.registerListeners("clickNumber", this.printVisor.bind(this));
+    this.eventBus.registerListeners("clickOperator", this.handleOperator.bind(this));
+    this.eventBus.registerListeners("clickEqual", this.equal.bind(this));
+    this.eventBus.registerListeners("clickCalculatorFunction", this.handleCalculatorFunction.bind(this))
+    this.eventBus.registerListeners("clickOperator",this.toggleIndicateOperator.bind(this))
+    this.eventBus.registerListeners("clickOperator", this.showCurrentOperatorInVisor.bind(this))
+    this.eventBus.registerListeners("operator_made", this.showHistory.bind(this))
+    this.eventBus.registerListeners("clickEqual", this.toggleIndicateOperator.bind(this))
+    this.eventBus.registerListeners("operator_made", this.showCurrentOperatorInVisor.bind(this))
+    this.eventBus.registerListeners("operator_made", this.clearOperatorVisor.bind(this))
+
+    this.buttons.forEach((button) => {
+      button.addEventListener("click", () => this.handleClickCalculatorButton(button.innerHTML), {capture: true});
+    });
+
+    this.eventBus.registerListeners("operator_made", () => {
+      this.needClearVisor = true;
+    })
     this.isOn = true;
     this.onOfButton.classList.add("active-calculator-indicator")
     this.printVisor(0)
@@ -321,13 +321,6 @@ class Calculator {
     this.updateOperator(null)
   }
 
-  disabledCalculatorEvents() {
-    const eventButtonsWithoutOnOff = Array.from(this.buttons).filter(button => button.innerHTML !== "ON/OFF")
-    eventButtonsWithoutOnOff.forEach(button =>  {
-      button.classList.add("disabled")
-      button.removeEventListener("click", () => {})
-    })
-  }
 
 
   some(vl1, vl2) {
